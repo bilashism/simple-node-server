@@ -45,12 +45,27 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1
 });
-client.connect(err => {
-  const collection = client.db("simple-node").collection("users");
-  // perform actions on the collection object
-  console.log("db connected");
-  client.close();
-});
+const run = async () => {
+  try {
+    const collectionDB = client.db("simpleNode");
+    const usersCollection = collectionDB.collection("users");
+    // const result = await usersCollection.insertOne(user);
+    // console.log("user added. id: ", result.insertedId);
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      user.id = result.insertedId;
+      // users.push(user);
+      // console.log(users);
+      res.send(user);
+    });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    // await client.close()
+  }
+};
+run().catch(console.dir);
 
 app.get("/users", (req, res) => {
   if (req.query.name) {
@@ -62,12 +77,4 @@ app.get("/users", (req, res) => {
   } else {
     res.send(users);
   }
-});
-
-app.post("/users", (req, res) => {
-  const user = req.body;
-  user.id = users.length + 1;
-  users.push(user);
-  console.log(users);
-  res.send(user);
 });
