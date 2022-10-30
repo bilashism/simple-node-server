@@ -1,27 +1,32 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
 const express = require("express");
 const cors = require("cors");
+const { MongoClient, ServerApiVersion } = require("mongodb");
+
 const port = process.env.PORT || 5000;
 const app = express();
 app.use(cors());
-
+app.use(express.json());
 const users = [
   {
-    id: "edb217a8-d834-4995-9d5a-8f66d751ce4e",
+    id: 1,
     name: "Antonia Michel",
     email: "antonia@fake.com"
   },
   {
-    id: "084e92d6-5a73-4890-a9db-177fd96408de",
+    id: 2,
     name: "Joline Sommer",
     email: "aoline@fake.com"
   },
   {
-    id: "8a6704b4-549d-4d5c-a689-f037494ae13c",
+    id: 3,
     name: "Dina Steigauf",
     email: "aina@fake.com"
   },
   {
-    id: "dd3e46b6-4930-4b58-812c-a367116098c8",
+    id: 4,
     name: "Annie Spank",
     email: "annie@fake.com"
   }
@@ -33,6 +38,36 @@ app.get("/", (req, res) => {
   res.send("Hello world!");
 });
 
+const uri = `${process.env.URI}`;
+
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1
+});
+client.connect(err => {
+  const collection = client.db("simple-node").collection("users");
+  // perform actions on the collection object
+  console.log("db connected");
+  client.close();
+});
+
 app.get("/users", (req, res) => {
-  res.send(users);
+  if (req.query.name) {
+    const search = String(req.query.name).toLowerCase();
+    const filtered = users.filter(user =>
+      user.name.toLowerCase().includes(search)
+    );
+    res.send(filtered);
+  } else {
+    res.send(users);
+  }
+});
+
+app.post("/users", (req, res) => {
+  const user = req.body;
+  user.id = users.length + 1;
+  users.push(user);
+  console.log(users);
+  res.send(user);
 });
