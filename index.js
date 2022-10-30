@@ -49,14 +49,20 @@ const run = async () => {
   try {
     const collectionDB = client.db("simpleNode");
     const usersCollection = collectionDB.collection("users");
-    // const result = await usersCollection.insertOne(user);
-    // console.log("user added. id: ", result.insertedId);
+
+    app.get("/users", async (req, res) => {
+      const query = {};
+      const options = {};
+
+      const cursor = usersCollection.find(query, options);
+      const users = await cursor.toArray();
+
+      res.send(users);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
-      user.id = result.insertedId;
-      // users.push(user);
-      // console.log(users);
       res.send(user);
     });
   } catch (error) {
@@ -66,15 +72,3 @@ const run = async () => {
   }
 };
 run().catch(console.dir);
-
-app.get("/users", (req, res) => {
-  if (req.query.name) {
-    const search = String(req.query.name).toLowerCase();
-    const filtered = users.filter(user =>
-      user.name.toLowerCase().includes(search)
-    );
-    res.send(filtered);
-  } else {
-    res.send(users);
-  }
-});
